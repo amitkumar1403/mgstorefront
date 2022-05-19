@@ -25,14 +25,11 @@ export const CUSTOMER_NEWSLETTER = `/api/${process.env.NEXT_PUBLIC_API_VERSION}/
 export const ORDERS_ENDPOINT = `/api/${process.env.NEXT_PUBLIC_API_VERSION}/commerce/order/`
 export const ADDRESS_ENDPOINT = `/api/${process.env.NEXT_PUBLIC_API_VERSION}/commerce/address/`
 export const CREATE_ADDRESS_ENDPOINT = `/api/${process.env.NEXT_PUBLIC_API_VERSION}/commerce/address/create`
-export const NEXT_STORE_LOCATOR = '/api/store-locator/get-stores'
 export const CATALOG_SEARCH = `api/${process.env.NEXT_PUBLIC_API_VERSION}/catalog/search/r`
-export const STORE_LOCATOR_API = '/api/v1/oms/store/locator'
 export const BASE_SEARCH_ENDPOINT = `api/${process.env.NEXT_PUBLIC_API_VERSION}/catalog/search`
 export const SHIPPING_ENDPOINT = `api/${process.env.NEXT_PUBLIC_API_VERSION}/commerce/shipping-method`
 export const CHECKOUT_ENDPOINT = `api/${process.env.NEXT_PUBLIC_API_VERSION}/commerce/checkout`
 export const PAYMENTS_ENDPOINT = `api/${process.env.NEXT_PUBLIC_API_VERSION}/commerce/checkout/payment-methods`
-export const RETURNS_ENDPOINT = `api/${process.env.NEXT_PUBLIC_API_VERSION}/commerce/return`
 export const INFRA_ENDPOINT = `api/${process.env.NEXT_PUBLIC_API_VERSION}/infra/config`
 export const KEYWORDS_ENDPOINT = `api/${process.env.NEXT_PUBLIC_API_VERSION}/catalog/search/keyword-redirections`
 export const LOQATE_ADDRESS = '/api/loqate'
@@ -82,17 +79,19 @@ export const NEXT_CONFIRM_ORDER = '/api/confirm-order'
 export const NEXT_INFRA_ENDPOINT = '/api/infra'
 export const NEXT_SET_CONFIG = '/api/set-config'
 export const NEXT_POST_PAYMENT_RESPONSE = '/api/payment-response'
+export const NEXT_STORE_LOCATOR = '/api/store-locator/get-stores'
+export const STORE_LOCATOR_API = '/api/v1/oms/store/locator'
+export const RETURNS_ENDPOINT = `api/${process.env.NEXT_PUBLIC_API_VERSION}/commerce/return`
+
+//CONSTANTS
 export const NEXT_FORGOT_PASSWORD = '/api/customer/forgot-password'
 export const NEXT_RESET_PASSWORD = '/api/customer/reset-password'
 export const NEXT_VALIDATE_TOKEN = '/api/customer/validate-token'
 export const NEXT_GET_RETURN_DATA = '/api/return/get-return-data'
-export const NEXT_CREATE_RETURN_DATA = '/api/return/create'
 export const NEXT_GET_RETURNS = '/api/return/get-user-returns'
-//CONSTANTS
-
 export const SessionIdCookieKey: string = `sessionId`
 export const DeviceIdKey: string = `deviceId`
-
+export const NEXT_CREATE_RETURN_DATA = '/api/return/create'
 //SHIPPING ACTION TYPES
 export const SHIPPING_ACTION_TYPES_MAP = {
   GET_ALL: 'GET_ALL',
@@ -104,5 +103,5 @@ export const STRIPE_CHECKOUT_SESSION = '/api/payments/stripe-checkout-session'
 
 export const NEXT_GEO_ENDPOINT =
   process.env.NEXT_PUBLIC_GEO_ENDPOINT ||
-  'https://omnilytics.bettercommerce.io/api/v1/IpInfo?ipAddress='
+  'https://omnilytics.omnicx.com/api/v1/IpInfo?ipAddress='
 export const UPDATE_ORDER_STATUS = '/api/update-order-status'

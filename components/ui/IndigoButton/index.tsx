@@ -13,16 +13,18 @@ interface Props {
 }
 
 const DEFAULT_COLOR_SCHEME = {
-  bgColor: 'bg-indigo-600',
-  hoverBgColor: 'bg-indigo-500',
-  focusRingColor: 'ring-indigo-500',
+  bgColor: 'bg-black',
+  hoverBgColor: 'bg-gray-800',
+  focusRingColor: 'ring-gray-800',
+  paddingTop: 'py-3',
+  fontSize: ''
 }
 
 const DefaultButton: FC<Props> = ({
   className = '',
   title = 'Add to bag',
   buttonType = 'cart',
-  action = () => { },
+  action = () => {},
   colorScheme = DEFAULT_COLOR_SCHEME,
 }) => {
   const [isLoading, setIsLoading] = useState(false)
@@ -32,23 +34,23 @@ const DefaultButton: FC<Props> = ({
   const handleAction = () => {
     setIsLoading(true)
     if (buttonType === 'cart') {
-      action()?.then(() => {
+      action().then(() => {
         setIsLoading(false)
         openCart()
       })
     } else
-      action()?.then(() => {
+      action().then(() => {
         setIsLoading(false)
       })
   }
 
-  const { bgColor, hoverBgColor, focusRingColor } = colorScheme
+  const { bgColor, hoverBgColor, focusRingColor, paddingTop, fontSize } = colorScheme
 
   return (
     <button
       onClick={handleAction}
       type="button"
-      className={`xs:max-w-xs flex-1 ${bgColor} border border-transparent rounded-md sm:py-3 py-1 sm:px-8 px-1 flex items-center justify-center font-medium text-white hover:${hoverBgColor} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:${focusRingColor} sm:w-full ${className}`}
+      className={`xs:max-w-xs flex-1 ${bgColor} border border-transparent rounded-xs sm:${paddingTop} py-1 sm:px-8 px-1 flex items-center justify-center font-medium ${fontSize} text-white hover:${hoverBgColor} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:${focusRingColor} sm:w-full ${className}`}
     >
       {isLoading ? <LoadingDots /> : title}
     </button>

@@ -1,25 +1,25 @@
 import { FC } from 'react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import AttributeSelector from './AttributeSelector'
 import Button from '@components/ui/IndigoButton'
 import cartHandler from '@components/services/cart'
 import { useUI } from '@components/ui/context'
 import axios from 'axios'
 import { NEXT_CREATE_WISHLIST } from '@components/utils/constants'
+import { HeartIcon } from '@heroicons/react/outline'
 import {
   ALERT_SUCCESS_WISHLIST_MESSAGE,
   BTN_ADD_TO_WISHLIST,
   BTN_NOTIFY_ME,
   BTN_PRE_ORDER,
   GENERAL_ADD_TO_BASKET,
-  IMG_PLACEHOLDER,
 } from '@components/utils/textVariables'
 
 interface Props {
   product: any
 }
+
 const colorKey = 'global.colour'
 
 const WISHLIST_BUTTON_COLOR_SCHEME = {
@@ -125,15 +125,15 @@ const ProductCard: FC<Props> = ({ product }) => {
     let buttonConfig: any = {
       title: GENERAL_ADD_TO_BASKET,
       action: async () => {
-        const item = await cartHandler()?.addToCart(
+        const item = await cartHandler().addToCart(
           {
             basketId,
-            productId: product?.recordId,
+            productId: product.recordId,
             qty: 1,
-            manualUnitPrice: product?.price?.raw?.withTax,
-            stockCode: product?.stockCode,
-            userId: user?.userId,
-            isAssociated: user?.isAssociated,
+            manualUnitPrice: product.price.raw.withTax,
+            stockCode: product.stockCode,
+            userId: user.userId,
+            isAssociated: user.isAssociated,
           },
           'ADD',
           { product }
@@ -147,11 +147,11 @@ const ProductCard: FC<Props> = ({ product }) => {
       buttonConfig.isNotifyMeEnabled = true
       buttonConfig.action = async () => handleNotification()
       buttonConfig.buttonType = 'button'
-    } else if (!product?.currentStock && product?.preOrder?.isEnabled) {
+    } else if (!product.currentStock && product.preOrder.isEnabled) {
       buttonConfig.title = BTN_PRE_ORDER
       buttonConfig.isPreOrderEnabled = true
       buttonConfig.buttonType = 'button'
-      buttonConfig.shortMessage = product?.preOrder?.shortMessage
+      buttonConfig.shortMessage = product.preOrder.shortMessage
     }
     return buttonConfig
   }
@@ -159,23 +159,44 @@ const ProductCard: FC<Props> = ({ product }) => {
   const buttonConfig = buttonTitle()
 
   return (
-    <div className="border-b border-r border-gray-200">
-      <div key={product.id} className="group relative p-2 sm:p-6">
+    <div className="border-gray-200">
+      <div key={product.id} className="relative p-2 sm:p-6">
+          {isInWishList ? (
+                <span className="text-gray-900">
+                    {ALERT_SUCCESS_WISHLIST_MESSAGE}
+                </span>
+            ) : (
+
+              <button
+                  className="absolute right-2 top-2 z-99"
+                  onClick={handleWishList}
+                >
+                  <HeartIcon
+                    className="flex-shrink-0 h-8 w-8 z-50 text-gray-800 group-hover:text-gray-500 rounded-3xl p-1 opacity-80"
+                    aria-hidden="true"
+                  />
+                  <span className="ml-2 text-sm font-medium text-gray-700 hover:text-red-800">
+                    
+                  </span>
+                  <span className="sr-only">f</span>
+                </button>
+                
+            )}
         <Link
           passHref
           href={`/${currentProductData.link}`}
           key={'data-product' + currentProductData.link}
         >
           <a href={currentProductData.link}>
-            <div className="relative rounded-lg overflow-hidden bg-gray-200 aspect-w-1 aspect-h-1 group-hover:opacity-75">
-              <div className='image-container'>
-                <Image
-                  src={currentProductData.image || IMG_PLACEHOLDER}
-                  alt={product.name}
-                  onMouseEnter={() => handleHover('enter')}
-                  onMouseLeave={() => handleHover('leave')}
-                  layout='fill' className='w-full sm:h-72 h-48 object-center object-cover image'></Image>
-              </div>
+            <div className="relative rounded-lg overflow-hidden bg-gray-200 aspect-w-1 aspect-h-1 hover:opacity-75">
+              
+              <img
+                src={currentProductData.image}
+                alt={product.name}
+                onMouseEnter={() => handleHover('enter')}
+                onMouseLeave={() => handleHover('leave')}
+                className="w-full sm:h-72 h-48 object-top object-cover"
+              />
               {buttonConfig.isPreOrderEnabled && (
                 <div className="bg-yellow-400 absolute py-1 px-1 rounded-sm top-2">
                   {BTN_PRE_ORDER}
@@ -187,16 +208,17 @@ const ProductCard: FC<Props> = ({ product }) => {
                 </div>
               )}
             </div>
+            
           </a>
         </Link>
 
         <div className="pt-4 pb-2 text-left grid sm:grid-cols-12 grid-cols-1">
           <div className='sm:col-span-8'>
-            <h3 className="sm:min-h-50px sm:text-sm text-xs font-medium text-gray-900 line-clip-2 text-center sm:text-left">
-              <Link href={`/${currentProductData.link}`}>
-                <a href={`/${currentProductData.link}`}>{product.name}</a>
-              </Link>
-            </h3>
+              <h3 className="sm:min-h-50px sm:text-sm text-xs font-medium text-gray-900 line-clip-2 text-center sm:text-left">
+                <Link href={`/${currentProductData.link}`}>
+                  <a href={`/${currentProductData.link}`}>{product.name}</a>
+                </Link>
+              </h3>
           </div>
           <div className='sm:col-span-4'>
             <p className="font-bold text-gray-900 sm:text-right text-center">
@@ -207,36 +229,24 @@ const ProductCard: FC<Props> = ({ product }) => {
         <div className='grid grid-cols-1 align-center text-center'>
           <div>
             {hasColorVariation ? (
-              <AttributeSelector
-                attributes={product.variantProductsAttributeMinimal}
-                onChange={handleVariableProduct}
-                link={currentProductData.link}
-              />
-            ) : (
-              <div className="sm:h-10 sm:w-10 h-5 w-5 sm:mr-2 mr-1 mt-2 inline-block" />
-            )}
-            <div className="flex flex-col">
-              <Button
-                className="mt-2"
-                title={buttonConfig.title}
-                action={buttonConfig.action}
-                type="button"
-                buttonType={buttonConfig.buttonType || 'cart'}
-              />
-              {isInWishList ? (
-                <span className="text-gray-900">
-                  {ALERT_SUCCESS_WISHLIST_MESSAGE}
-                </span>
-              ) : (
-                <Button
-                  className="mt-2"
-                  action={handleWishList}
-                  buttonType="wishlist"
-                  colorScheme={WISHLIST_BUTTON_COLOR_SCHEME}
-                  title={BTN_ADD_TO_WISHLIST}
-                />
-              )}
-            </div>
+            <AttributeSelector
+              attributes={product.variantProductsAttributeMinimal}
+              onChange={handleVariableProduct}
+              link={currentProductData.link}
+            />
+          ) : (
+            <div className="sm:h-10 sm:w-10 h-5 w-5 sm:mr-2 mr-1 mt-2 inline-block" />
+          )}
+          <div className="flex flex-col">
+            <Button
+              className="mt-2 hidden"
+              title={buttonConfig.title}
+              action={buttonConfig.action}
+              type="button"
+              buttonType={buttonConfig.buttonType || 'cart'}
+            />
+            
+          </div>
           </div>
         </div>
       </div>

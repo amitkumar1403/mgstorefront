@@ -11,30 +11,18 @@ import cartHandler from '@components/services/cart'
 import { PlusSmIcon, MinusSmIcon } from '@heroicons/react/outline'
 import PromotionInput from '../components/cart/PromotionInput'
 import { useEffect } from 'react'
-import Image from 'next/image'
 import axios from 'axios'
 import { NEXT_SHIPPING_PLANS } from '@components/utils/constants'
-import {
-  BTN_CHECKOUT_NOW,
-  GENERAL_CATALOG,
-  GENERAL_DISCOUNT,
-  GENERAL_ORDER_SUMMARY,
-  GENERAL_REMOVE,
-  GENERAL_SHIPPING,
-  GENERAL_SHOPPING_CART,
-  GENERAL_TOTAL,
-  ITEMS_IN_YOUR_CART,
-  SUBTOTAL_INCLUDING_TAX,
-} from '@components/utils/textVariables'
+import { BTN_CHECKOUT_NOW, GENERAL_CATALOG, GENERAL_DISCOUNT, GENERAL_ORDER_SUMMARY, GENERAL_REMOVE, GENERAL_SHIPPING, GENERAL_SHOPPING_CART, GENERAL_TOTAL, ITEMS_IN_YOUR_CART, SUBTOTAL_INCLUDING_TAX } from '@components/utils/textVariables'
 
 function Cart({ cart }: any) {
   const { setCartItems, cartItems, basketId } = useUI()
   const { addToCart } = cartHandler()
 
-  const mapShippingPlansToItems = (plans?: any, items?: any) => {
+  const mapShippingPlansToItems = (plans: any, items: any) => {
     const itemsClone = [...items]
     return plans.reduce((acc: any, obj: any) => {
-      acc?.forEach((cartItem?: any) => {
+      acc.forEach((cartItem: any) => {
         const foundShippingPlan = obj.items.find((item: any) => {
           return (
             item.productId.toLowerCase() === cartItem.productId.toLowerCase()
@@ -58,10 +46,10 @@ function Cart({ cart }: any) {
       OrderId: '00000000-0000-0000-0000-000000000000',
       PostCode: '',
       ShippingMethodType: shippingMethodItem.type,
-      ShippingMethodId: cart?.shippingMethodId,
+      ShippingMethodId: cart.shippingMethodId,
       ShippingMethodName: shippingMethodItem.displayName,
       ShippingMethodCode: shippingMethodItem.shippingCode,
-      DeliveryItems: cart?.lineItems?.map((item: any) => {
+      DeliveryItems: cart.lineItems.map((item: any) => {
         return {
           BasketLineId: Number(item.id),
           OrderLineRecordId: '00000000-0000-0000-0000-000000000000',
@@ -90,7 +78,7 @@ function Cart({ cart }: any) {
   }
 
   useEffect(() => {
-    if (cart?.shippingMethods.length > 0) fetchShippingPlans()
+    if (cart.shippingMethods.length > 0) fetchShippingPlans()
     else {
       setCartItems(cart)
     }
@@ -111,9 +99,6 @@ function Cart({ cart }: any) {
       }
       if (type === 'delete') {
         data.qty = 0
-        userCart.lineItems = userCart.lineItems.filter(
-          (item: { id: any }) => item.id !== product.id
-        )
       }
       try {
         const item = await addToCart(data)
@@ -126,6 +111,7 @@ function Cart({ cart }: any) {
   }
 
   const userCart = cartItems
+
   const isEmpty: boolean = userCart?.lineItems?.length === 0
 
   return (
@@ -148,19 +134,11 @@ function Cart({ cart }: any) {
                 {userCart.lineItems?.map((product: any, productIdx: number) => (
                   <li key={productIdx} className="flex py-4 sm:py-10">
                     <div className="flex-shrink-0">
-                      <Image
-                        layout="fixed"
-                        width={160}
-                        height={160}
-                        src={`${product.image}`}
-                        alt={product.name}
-                        className="w-16 h-16 rounded-md object-center object-cover sm:w-48 sm:h-48 image"
-                      ></Image>
-                      {/* <img
+                      <img
                         src={product.image}
                         alt={product.name}
                         className="w-16 h-16 rounded-md object-center object-cover sm:w-48 sm:h-48"
-                      /> */}
+                      />
                     </div>
                     <div className="ml-4 flex-1 flex flex-col justify-between sm:ml-6">
                       <div className="relative sm:pr-9 pr-6 flex justify-between sm:pr-0 h-full">
@@ -218,9 +196,7 @@ function Cart({ cart }: any) {
                                         }
                                         className="-m-2 p-2 inline-flex text-gray-400 hover:text-gray-500"
                                       >
-                                        <span className="sr-only">
-                                          {GENERAL_REMOVE}
-                                        </span>
+                                        <span className="sr-only">{GENERAL_REMOVE}</span>
                                         <XIconSolid
                                           className="h-5 w-5"
                                           aria-hidden="true"
@@ -266,10 +242,10 @@ function Cart({ cart }: any) {
                           </button>
                         </div>
                       </div>
-                      <div className="flex flex-col sm:hidden block">
-                        <p className="pt-3 sm:text-sm text-xs font-bold text-gray-700">
-                          {product.shippingPlan?.shippingSpeed}
-                        </p>
+                      <div className='flex flex-col sm:hidden block'>
+                         <p className="pt-3 sm:text-sm text-xs font-bold text-gray-700">
+                            {product.shippingPlan?.shippingSpeed}
+                          </p>
                       </div>
                     </div>
                   </li>
@@ -331,7 +307,7 @@ function Cart({ cart }: any) {
                 <Link href="/checkout">
                   <a
                     type="submit"
-                    className="text-center w-full bg-indigo-600 border border-transparent rounded-md shadow-sm py-3 px-4 font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-indigo-500"
+                    className="text-center w-full bg-black border border-transparent rounded-md shadow-sm py-3 px-4 font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-gray-800"
                   >
                     {BTN_CHECKOUT_NOW}
                   </a>
@@ -372,7 +348,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const response = await getCart()({
     basketId: basketRef,
-    cookies: context.req.cookies,
   })
 
   return {

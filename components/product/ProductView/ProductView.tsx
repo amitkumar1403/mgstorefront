@@ -15,8 +15,9 @@ import Engraving from '@components/product/Engraving'
 import ProductDetails from '@components/product/ProductDetails'
 import { KEYS_MAP, EVENTS } from '@components/utils/dataLayer'
 import cartHandler from '@components/services/cart'
+import DeliveryInstruction from './DeliveryInstructions'
+
 import axios from 'axios'
-import Image from 'next/image'
 import {
   NEXT_CREATE_WISHLIST,
   NEXT_BULK_ADD_TO_CART,
@@ -37,15 +38,16 @@ import {
   GENERAL_REFERENCE,
   GENERAL_REVIEWS,
   GENERAL_REVIEW_OUT_OF_FIVE,
-  IMG_PLACEHOLDER,
   ITEM_TYPE_ADDON,
   PRICEMATCH_ADDITIONAL_DETAILS,
   PRICEMATCH_BEST_PRICE,
   PRICEMATCH_SEEN_IT_CHEAPER,
   PRODUCT_INFORMATION,
   YOUTUBE_VIDEO_PLAYER,
+  SLUG_TYPE_MANUFACTURER,
+  BTN_ADD_TO_WISHLIST
 } from '@components/utils/textVariables'
-import { ELEM_ATTR, PDP_ELEM_SELECTORS } from '@framework/content/use-content-snippet'
+
 
 const PLACEMENTS_MAP: any = {
   Head: {
@@ -85,10 +87,10 @@ export default function ProductView({
   const [isInWishList, setItemsInWishList] = useState(false)
 
   const product = updatedProduct || data
-  
+
   const [selectedAttrData, setSelectedAttrData] = useState({
-    productId: product?.recordId,
-    stockCode: product?.stockCode,
+    productId: product.recordId,
+    stockCode: product.stockCode,
     ...product,
   })
 
@@ -171,7 +173,13 @@ export default function ProductView({
         index === self.findIndex((t: any) => t.image === value.image)
     )
   }
-
+const DEFAULT_COLOR_SCHEME = {
+  bgColor: 'bg-gray-900',
+  hoverBgColor: 'bg-gray-800',
+  focusRingColor: 'ring-gray-900',
+  paddingTop: 'py-5',
+  fontSize: 'text-xl'
+}
   const buttonTitle = () => {
     let buttonConfig: any = {
       title: GENERAL_ADD_TO_BASKET,
@@ -193,7 +201,7 @@ export default function ProductView({
       },
       shortMessage: '',
     }
-    if (selectedAttrData.currentStock <= 0 && !product.preOrder.isEnabled) {
+    if (!selectedAttrData.currentStock && !product.preOrder.isEnabled) {
       if (
         !product.flags.sellWithoutInventory ||
         !selectedAttrData.sellWithoutInventory
@@ -202,47 +210,14 @@ export default function ProductView({
         buttonConfig.action = async () => handleNotification()
         buttonConfig.type = 'button'
       }
-    } else if (
-      product.preOrder.isEnabled &&
-      selectedAttrData.currentStock <= 0
-    ) {
-      if (
-        product.preOrder.currentStock < product.preOrder.maxStock &&
-        (!product.flags.sellWithoutInventory ||
-          selectedAttrData.sellWithoutInventory)
-      ) {
+    } else if (product.preOrder.isEnabled && !selectedAttrData.currentStock) {
+      if (product.preOrder.currentStock < product.preOrder.maxStock) {
         buttonConfig.title = BTN_PRE_ORDER
         buttonConfig.shortMessage = product.preOrder.shortMessage
-        return buttonConfig
-      } else if (
-        product.flags.sellWithoutInventory ||
-        selectedAttrData.sellWithoutInventory
-      ) {
-        buttonConfig = {
-          title: GENERAL_ADD_TO_BASKET,
-          action: async () => {
-            const item = await cartHandler().addToCart(
-              {
-                basketId: basketId,
-                productId: selectedAttrData.productId,
-                qty: 1,
-                manualUnitPrice: product.price.raw.withTax,
-                stockCode: selectedAttrData.stockCode,
-                userId: user.userId,
-                isAssociated: user.isAssociated,
-              },
-              'ADD',
-              { product: selectedAttrData }
-            )
-            setCartItems(item)
-          },
-          shortMessage: '',
-        }
       } else {
         buttonConfig.title = BTN_NOTIFY_ME
         buttonConfig.action = async () => handleNotification()
         buttonConfig.type = 'button'
-        return buttonConfig
       }
     }
     return buttonConfig
@@ -373,6 +348,9 @@ export default function ProductView({
     (item: any) => item.stockCode !== ITEM_TYPE_ADDON
   )
 
+  const breadcrumbs = product.breadCrumbs?.filter(
+    (item: any) => item.slugType !== SLUG_TYPE_MANUFACTURER
+  )
   /*if (product === null) {
     return {
       notFound: true,
@@ -381,10 +359,11 @@ export default function ProductView({
 
   return (
     <div className="bg-white page-container">
+      
       {/* Mobile menu */}
       <div className="max-w-7xl mx-auto pt-2 px-2 sm:pt-6 sm:px-6 lg:px-8">
-        {product.breadCrumbs && (
-          <BreadCrumbs items={product.breadCrumbs} currentProduct={product} />
+        {breadcrumbs && (
+          <BreadCrumbs items={breadcrumbs} currentProduct={product} />          
         )}
       </div>
       <main className="max-w-7xl mx-auto sm:pt-16 sm:px-6 lg:px-8">
@@ -399,21 +378,91 @@ export default function ProductView({
                   {content?.map((image: any, idx) => (
                     <Tab
                       key={`${idx}-tab`}
-                      className="relative h-24 sm:h-44 bg-white rounded-md flex items-center justify-center text-sm font-medium uppercase text-gray-900 cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring focus:ring-offset-4 focus:ring-opacity-50"
+                      className="relative h-40 bg-white rounded-md flex items-center justify-center text-sm font-medium uppercase text-gray-900 cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring focus:ring-offset-4 focus:ring-opacity-50"
                     >
                       {() => (
                         <>
                           <span className="sr-only">{image.name}</span>
-                          <span className="absolute inset-0 rounded-md overflow-hidden">
+                          <span className="absolute inset-0 rounded-md overflow-hidden border">
                             {image.image ? (
-                              <div className='image-container'>
-                                <Image
-                                  src={`${image.image}` || IMG_PLACEHOLDER}
-                                  alt={image.name}
-                                  className="w-full h-full sm:h-44 object-center object-cover image"
-                                  layout='fill'
-                                ></Image>
-                              </div>
+                              <img
+                                src={image.image}
+                                alt=""
+                                className="w-full h-full object-center object-cover"
+                              />
+                              
+                            ) : (
+                              <PlayIcon className="h-full w-full object-center object-cover" />
+                            )}
+                          </span>
+                        </>
+                      )}
+                    </Tab>
+                  ))}
+                  {content?.map((image: any, idx) => (
+                    <Tab
+                      key={`${idx}`}
+                      className="relative h-40 bg-white rounded-md flex items-center justify-center text-sm font-medium uppercase text-gray-900 cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring focus:ring-offset-4 focus:ring-opacity-50"
+                    >
+                      {() => (
+                        <>
+                          <span className="sr-only">{image.name}</span>
+                          <span className="absolute inset-0 rounded-md overflow-hidden border">
+                            {image.image ? (
+                              <img
+                                src={image.image}
+                                alt=""
+                                className="w-full h-full object-center object-cover"
+                              />
+                              
+                            ) : (
+                              <PlayIcon className="h-full w-full object-center object-cover" />
+                            )}
+                          </span>
+                        </>
+                      )}
+                    </Tab>
+                  ))}
+                  {content?.map((image: any, idx) => (
+                    <Tab
+                      key={`${idx}-tab1`}
+                      className="relative h-40 bg-white rounded-md flex items-center justify-center text-sm font-medium uppercase text-gray-900 cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring focus:ring-offset-4 focus:ring-opacity-50"
+                    >
+                      {() => (
+                        <>
+                          <span className="sr-only">{image.name}</span>
+                          <span className="absolute inset-0 rounded-md overflow-hidden border">
+                            {image.image ? (
+                              <img
+                                src={image.image}
+                                alt=""
+                                className="w-full h-full object-center object-cover"
+                              />
+                              
+                            ) : (
+                              <PlayIcon className="h-full w-full object-center object-cover" />
+                            )}
+                          </span>
+                        </>
+                      )}
+                    </Tab>
+                  ))}
+                  {content?.map((image: any, idx) => (
+                    <Tab
+                      key={`${idx}-tab2`}
+                      className="relative h-40 bg-white rounded-md flex items-center justify-center text-sm font-medium uppercase text-gray-900 cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring focus:ring-offset-4 focus:ring-opacity-50"
+                    >
+                      {() => (
+                        <>
+                          <span className="sr-only">{image.name}</span>
+                          <span className="absolute inset-0 rounded-md overflow-hidden border">
+                            {image.image ? (
+                              <img
+                                src={image.image}
+                                alt=""
+                                className="w-full h-full object-center object-cover"
+                              />
+                              
                             ) : (
                               <PlayIcon className="h-full w-full object-center object-cover" />
                             )}
@@ -429,14 +478,74 @@ export default function ProductView({
                 {content?.map((image: any) => (
                   <Tab.Panel key={image.name + 'tab-panel'}>
                     {image.image ? (
-                      <div className='image-container'>
-                        <Image
-                          src={`${image.image}` || IMG_PLACEHOLDER}
-                          alt={image.name}
-                          className="w-full h-full object-center object-cover image rounded-lg"
-                          layout='fill'
-                        ></Image>
-                      </div>
+                      <img
+                        src={image.image}
+                        alt={image.name}
+                        className="w-full h-full object-center object-cover rounded-lg"
+                      />
+                    ) : (
+                      <iframe
+                        width="560"
+                        height="315"
+                        src={image.url}
+                        title={YOUTUBE_VIDEO_PLAYER}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    )}
+                  </Tab.Panel>
+                ))}
+                {content?.map((image: any) => (
+                  <Tab.Panel key={image.name + 'tab-panel'}>
+                    {image.image ? (
+                      <img
+                        src={image.image}
+                        alt={image.name}
+                        className="w-full h-full object-center object-cover rounded-lg"
+                      />
+                    ) : (
+                      <iframe
+                        width="560"
+                        height="315"
+                        src={image.url}
+                        title={YOUTUBE_VIDEO_PLAYER}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    )}
+                  </Tab.Panel>
+                ))}
+                {content?.map((image: any) => (
+                  <Tab.Panel key={image.name + 'tab-panel'}>
+                    {image.image ? (
+                      <img
+                        src={image.image}
+                        alt={image.name}
+                        className="w-full h-full object-center object-cover rounded-lg"
+                      />
+                    ) : (
+                      <iframe
+                        width="560"
+                        height="315"
+                        src={image.url}
+                        title={YOUTUBE_VIDEO_PLAYER}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    )}
+                  </Tab.Panel>
+                ))}
+                {content?.map((image: any) => (
+                  <Tab.Panel key={image.name + 'tab-panel'}>
+                    {image.image ? (
+                      <img
+                        src={image.image}
+                        alt={image.name}
+                        className="w-full h-full object-center object-cover rounded-lg"
+                      />
                     ) : (
                       <iframe
                         width="560"
@@ -454,12 +563,12 @@ export default function ProductView({
             </Tab.Group>
 
             {/* Product info */}
-            <div className="sm:mt-10 mt-2 px-4 sm:px-0 sm:mt-16 lg:mt-0">
-              <h1 className="sm:text-3xl text-xl font-bold sm:font-extrabold tracking-tight text-gray-900">
+            <div className="sm:mt-10 mt-2 px-4 sm:px-10 sm:mt-16 lg:mt-0 text-center">
+              <h1 className="sm:text-3xl text-xl font-bold sm:font-semibold lowercase tracking-tight text-gray-900">
                 {selectedAttrData.name || selectedAttrData.productName}
               </h1>
 
-              <p className="text-gray-500 sm:text-md text-sm mt-2 sm:mt-0">
+              <p className="text-gray-500 sm:text-md text-sm mt-2 sm:mt-1">
                 {GENERAL_REFERENCE}: {selectedAttrData.stockCode}
               </p>
               <div className="mt-3">
@@ -480,10 +589,10 @@ export default function ProductView({
               </div>
 
               {/* Reviews */}
-              <div className="mt-3">
+              <div className="mt-6">
                 <h3 className="sr-only">{GENERAL_REVIEWS}</h3>
-                <div className="flex items-center xs:flex-col">
-                  <div className="flex items-center xs:text-center align-center">
+                <div className="flex items-center flex-col">
+                  <div className="flex items-center text-center align-center">
                     {[0, 1, 2, 3, 4].map((rating) => (
                       <StarIcon
                         key={rating}
@@ -502,14 +611,15 @@ export default function ProductView({
                   </p>
                 </div>
               </div>
-              <div className="w-full sm:w-6/12">
+              <div className="w-full sm:w-full">
                 <AttributesHandler
                   product={product}
                   variant={selectedAttrData}
                   setSelectedAttrData={setSelectedAttrData}
                 />
               </div>
-              <p
+
+              {/* <p
                 className="text-gray-900 sm:text-md text-sm cursor-pointer hover:underline"
                 onClick={() => showPriceMatchModal(true)}
               >
@@ -517,27 +627,14 @@ export default function ProductView({
                 <span>
                   {''} {PRICEMATCH_BEST_PRICE}
                 </span>
-              </p>
-
-              <section
-                aria-labelledby="details-heading"
-                className="sm:mt-12 mt-4"
-              >
-                <h2 id="details-heading" className="sr-only">
-                  {PRICEMATCH_ADDITIONAL_DETAILS}
-                </h2>
-                <ProductDetails
-                  product={product}
-                  description={
-                    selectedAttrData.description || product.description
-                  }
-                />
-                {updatedProduct ? (
+              </p> */}
+              {updatedProduct ? (
                   <>
-                    <div className="sm:mt-10 mt-6 flex sm:flex-col1">
+                    <div className="sm:mt-4 mt-6 flex sm:flex-col1 grid grid-cols-1 sm:px-16">
                       <Button
                         title={buttonConfig.title}
                         action={buttonConfig.action}
+                        colorScheme = {DEFAULT_COLOR_SCHEME}
                         buttonType={buttonConfig.type || 'cart'}
                       />
 
@@ -548,12 +645,14 @@ export default function ProductView({
                             handleWishList()
                           }
                         }}
-                        className="ml-4 py-3 px-3 rounded-md flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-500"
+                        className="mt-3 py-3 px-3 rounded-md flex items-center justify-center text-gray-600 block flex hover:text-gray-900"
                       >
                         {isInWishList ? (
                           <span>{ALERT_SUCCESS_WISHLIST_MESSAGE}</span>
                         ) : (
-                          <HeartIcon className="h-6 w-6 flex-shrink-0" />
+                          <>
+                            <HeartIcon className="h-6 w-6 flex-shrink-0" /> <span>{BTN_ADD_TO_WISHLIST}</span>
+                          </>
                         )}
                         <span className="sr-only">{BTN_ADD_TO_FAVORITES}</span>
                       </button>
@@ -567,14 +666,25 @@ export default function ProductView({
                       </button>
                     )}
                   </>
-                ) : null}
-                <div className="border-t divide-y divide-gray-200 sm:mt-10 mt-6">
+                ) : null}                
+              <section aria-labelledby="details-heading" className="sm:mt-2 mt-4">
+                <h2 id="details-heading" className="sr-only">
+                  {PRICEMATCH_ADDITIONAL_DETAILS}
+                </h2>
+                <ProductDetails
+                  product={product}
+                  description={
+                    selectedAttrData.description || product.description
+                  }
+                />    
+                <DeliveryInstruction></DeliveryInstruction>   
+                <div className="divide-gray-200 sm:mt-10 mt-6">
                   <p className="text-gray-900 text-lg">
                     {selectedAttrData.currentStock > 0
                       ? product.deliveryMessage
                       : product.stockAvailabilityMessage}
                   </p>
-                </div>
+                </div>         
               </section>
             </div>
           </div>
@@ -591,11 +701,6 @@ export default function ProductView({
               relatedProductList={filteredRelatedProductList}
             />
           ) : null}
-
-          {/* Placeholder for pdp snippet */}
-          <div className={`${ELEM_ATTR}${PDP_ELEM_SELECTORS[0]}`}></div>
-
-
           <Reviews data={product.reviews} productId={product.recordId} />
           {isEngravingAvailable && (
             <Engraving

@@ -1,21 +1,21 @@
 import { FC } from 'react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import AttributeSelector from './AttributeSelector'
 import Button from '@components/ui/IndigoButton'
 import cartHandler from '@components/services/cart'
 import { useUI } from '@components/ui/context'
 import axios from 'axios'
 import { NEXT_CREATE_WISHLIST } from '@components/utils/constants'
+import { HeartIcon } from '@heroicons/react/outline'
 import {
   ALERT_SUCCESS_WISHLIST_MESSAGE,
   BTN_ADD_TO_WISHLIST,
   BTN_NOTIFY_ME,
   BTN_PRE_ORDER,
   GENERAL_ADD_TO_BASKET,
-  IMG_PLACEHOLDER,
 } from '@components/utils/textVariables'
+
 interface Props {
   product: any
 }
@@ -159,25 +159,44 @@ const SearchProductCard: FC<Props> = ({ product }) => {
   const buttonConfig = buttonTitle()
 
   return (
-    <div className="border-r border-b border-gray-100">
-      <div key={product.id} className="group relative p-3 sm:p-6">
+    <div className="border-gray-100">
+      <div key={product.id} className="relative p-3 sm:p-6">
+        {isInWishList ? (
+                  <span className="text-gray-900">
+                      {ALERT_SUCCESS_WISHLIST_MESSAGE}
+                  </span>
+              ) : (
+
+               <button
+                  className="absolute right-2 top-2 z-99"
+                  onClick={handleWishList}
+                >
+                  <HeartIcon
+                    className="flex-shrink-0 h-8 w-8 z-50 text-gray-800 hover:text-gray-500 rounded-3xl p-1 opacity-80"
+                    aria-hidden="true"
+                  />
+                  <span className="ml-2 text-sm font-medium text-gray-700 hover:text-red-800">
+                    
+                  </span>
+                  <span className="sr-only">f</span>
+                </button>
+                 
+              )}   
         <Link
           passHref
           href={`/${currentProductData.link}`}
           key={'data-product' + currentProductData.link}
         >
           <a href={currentProductData.link}>
-            <div className="relative rounded-lg overflow-hidden bg-gray-200 aspect-w-1 aspect-h-1 group-hover:opacity-75">
-              <div className='image-container'>
-                  <Image 
-                      src={currentProductData.image || IMG_PLACEHOLDER}
-                      alt={product.name}
-                      onMouseEnter={() => handleHover('enter')}
-                      onMouseLeave={() => handleHover('leave')}
-                      layout='fill' 
-                      className='w-full sm:h-72 h-48 object-center object-cover image'>
-                  </Image>
-              </div>
+            <div className="relative rounded-lg overflow-hidden bg-gray-200 aspect-w-1 aspect-h-1 hover:opacity-75">
+                         
+              <img
+                src={currentProductData.image}
+                alt={product.name}
+                onMouseEnter={() => handleHover('enter')}
+                onMouseLeave={() => handleHover('leave')}
+                className="w-full sm:h-64 h-48 object-center object-cover"
+              />
               {buttonConfig.isPreOrderEnabled && (
                 <div className="bg-yellow-400 absolute py-1 px-1 rounded-sm top-2">
                   {BTN_PRE_ORDER}
@@ -213,25 +232,13 @@ const SearchProductCard: FC<Props> = ({ product }) => {
           )}
           <div className="flex flex-col">
             <Button
-              className="mt-2"
+              className="mt-2 hidden"
               title={buttonConfig.title}
               action={buttonConfig.action}
               type="button"
               buttonType={buttonConfig.buttonType || 'cart'}
             />
-            {isInWishList ? (
-              <span className="text-gray-900">
-                {ALERT_SUCCESS_WISHLIST_MESSAGE}
-              </span>
-            ) : (
-              <Button
-                className="mt-2"
-                action={handleWishList}
-                buttonType="wishlist"
-                colorScheme={WISHLIST_BUTTON_COLOR_SCHEME}
-                title={BTN_ADD_TO_WISHLIST}
-              />
-            )}
+            
           </div>
         </div>
       </div>
